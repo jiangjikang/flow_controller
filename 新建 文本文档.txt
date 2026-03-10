@@ -1,0 +1,16 @@
+__weak void HAL_USARTEx_RxFifoFullCallback(USART_HandleTypeDef *husart)
+{
+	 UNUSED(husart);
+}
+
+__weak void HAL_USARTEx_TxFifoEmptyCallback(USART_HandleTypeDef *husart)
+{
+	 UNUSED(husart);
+}
+
+
+
+#include "stm32h7xx_hal_conf_t.h"
+
+
+添加 stm32xxx_hal_msp.c
