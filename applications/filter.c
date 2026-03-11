@@ -55,16 +55,19 @@ int32_t median_filter(struct median_filter *filter, int32_t value)
     uint16_t mid_index = (filter->len - 1) >> 1;
     if((filter->len & 0x01) > 0)
     {
-        filter->last_value = buf_copy[mid_index];
+        filter->last_value = ( buf_copy[mid_index-1] + buf_copy[mid_index] + buf_copy[mid_index+1] )/3;
     }
     else
     {
-        filter->last_value = (buf_copy[mid_index] + buf_copy[mid_index + 1]) >> 1;
+        filter->last_value = (buf_copy[mid_index-1] + buf_copy[mid_index] + buf_copy[mid_index + 1] + buf_copy[mid_index + 2]) >> 2;
     }
 
     rt_free(buf_copy);
 
     return filter->last_value;
 }
+
+
+
 
 

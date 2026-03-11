@@ -252,7 +252,8 @@ static int atoi(const char *nptr)
 }
 
 
-float set_flow_val = 0;
+float g_set_flow_val = 0;
+float g_k_factor = 1.0f;
 
 void setvar(int argc, char **argv)
 {
@@ -263,7 +264,11 @@ void setvar(int argc, char **argv)
     int32_t value = atoi(argv[2]);
     if (!rt_strcmp(argv[1], "flow")) 
 	{
-        set_flow_val =  value;
+        g_set_flow_val =  value;
+    }
+	else if (!rt_strcmp(argv[1], "kfactor")) 
+	{
+        g_k_factor =  (float)value/1000;
     }
 	else 
 	{ 
@@ -273,51 +278,44 @@ void setvar(int argc, char **argv)
 MSH_CMD_EXPORT(setvar, set var);
 
 
-void stopstop(void)
+void stop(void)
 {
+	g_set_flow_val = 0;
     set_dac_output_voltage(0);
 	rt_kprintf("stop stop");
 }
-MSH_CMD_EXPORT(stopstop,stop);
+MSH_CMD_EXPORT(stop,stop);
 
 
 int main(void)
 {
-    /* set LED0 pin mode to output */	
-    rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);	
-	rt_hw_ads8688_config();
-	
 	uint16_t adc_data_tmp = 0;
 	uint16_t adc_data = 0;
-	
+
 	uint8_t dis_buf[40];
 	float volt_mV;
 	float current_mA;
 	float flow_rate = 0;
 	
 	rt_err_t err;
-	
-	DAC1_Init();	//初始化DAC1
-    
+
 	float vlot_set_value_mV = 0;	
 	static uint16_t count = 0;
 	
 	int32_t adc_value_unfiltered = 0;
 	
+	DAC1_Init();		// 初始化DAC1
+	 /* set LED0 pin mode to output */	
+    rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);	
+	rt_hw_ads8688_config();
 	median_filter_init(&adc_median_filter, 10);
+	
     while (1)
     {
 		err = ads8688_get_man_ch_data(MAN_CH_0,&adc_data_tmp);
 		if(err == RT_EOK)
 		{
-			if(adc_data_tmp == 0x0 || adc_data_tmp == 0xFFFF)
-			{
-				rt_kprintf("adc read 0xFF!\r\n");
-			}
-			else
-			{
-				adc_data = median_filter(&adc_median_filter, adc_data_tmp);
-			}
+			adc_data = median_filter(&adc_median_filter, adc_data_tmp);
 		}
 		else
 		{
@@ -328,6 +326,8 @@ int main(void)
 		current_mA = volt_mV / 499;
 		
 		flow_rate = convert_current_to_flow(current_mA);
+		
+		flow_rate *= g_k_factor;
 		
 		if(flow_rate < 0)
 		{
@@ -342,38 +342,52 @@ int main(void)
 			rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
 		}
 		
-		if(flow_rate < set_flow_val-500)
+		if(flow_rate < g_set_flow_val - 500)
 		{
-			vlot_set_value_mV += 20;
+			vlot_set_value_mV += 50;
 		}
-		else if(flow_rate < set_flow_val-100)
+		else if(flow_rate < g_set_flow_val-100)
 		{
-			vlot_set_value_mV += 10;
+			vlot_set_value_mV += 5;
 		}
-		else if(flow_rate < set_flow_val-2)
+		else if(flow_rate < g_set_flow_val-20)
 		{
-			vlot_set_value_mV += 1;
+			vlot_set_value_mV += 2;
 		}
-		else if(flow_rate > set_flow_val + 100)
+		else if(flow_rate < g_set_flow_val - 2)
+		{
+			vlot_set_value_mV += 0.1;
+		}
+		
+		else if(flow_rate > g_set_flow_val + 500)
 		{	
-			vlot_set_value_mV -= 10;
+			vlot_set_value_mV -= 50;
 		}
-		else if(flow_rate > set_flow_val + 500)
+		else if(flow_rate > g_set_flow_val + 100)
 		{	
-			vlot_set_value_mV -= 20;
+			vlot_set_value_mV -= 5;
 		}
-		else if(flow_rate > set_flow_val + 2)
+		else if(flow_rate > g_set_flow_val + 20)
 		{	
-			vlot_set_value_mV -= 1;
+			vlot_set_value_mV -= 2;
 		}
+		else if(flow_rate > g_set_flow_val + 2)
+		{	
+			vlot_set_value_mV -= 0.1;
+		}
+		else if(g_set_flow_val == 0)
+		{
+			vlot_set_value_mV = 0;
+		}
+			
 		
 		if(vlot_set_value_mV < 0)
 		{
 			vlot_set_value_mV = 0;
 		}
-		else if(vlot_set_value_mV > 6000)
+		else if(vlot_set_value_mV > 7000)
 		{
-			vlot_set_value_mV = 6000;
+			vlot_set_value_mV = 7000;
 		}
 		
 		set_dac_output_voltage(vlot_set_value_mV);
