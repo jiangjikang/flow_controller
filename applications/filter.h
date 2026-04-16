@@ -6,9 +6,9 @@
 
 
 #include "stm32h7xx_hal.h"
-
-#include <rthw.h>
 #include <rtthread.h>
+#include <rthw.h>
+
 
 
 
@@ -20,6 +20,18 @@ struct median_filter
     uint16_t cnt;
     uint8_t full_flag;
 };
+
+struct sliding_average_filter
+{
+    int16_t w_size;
+    int16_t head;
+    float sum;
+    float *cache;
+};
+
+void sliding_average_filter_init(struct sliding_average_filter *filter, int16_t w_size);
+float sliding_average_filter(struct sliding_average_filter *filter, float k);
+
 
 
 

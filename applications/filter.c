@@ -1,5 +1,7 @@
 
 #include "filter.h"
+#include "string.h"
+#include "stdlib.h"
 
 
 
@@ -65,6 +67,26 @@ int32_t median_filter(struct median_filter *filter, int32_t value)
     rt_free(buf_copy);
 
     return filter->last_value;
+}
+
+
+float sliding_average_filter(struct sliding_average_filter *filter, float k)
+{
+        filter->cache[filter->head] = k;
+        filter->head = (filter->head + 1) % filter->w_size;
+        filter->sum = filter->sum + k - filter->cache[filter->head];
+        return (filter->sum / (float)(filter->w_size - 1));
+}
+
+
+void sliding_average_filter_init(struct sliding_average_filter *filter, int16_t w_size)
+{
+        w_size += 1;
+        filter->cache = (float*)malloc(sizeof(float) * w_size);
+        memset(filter->cache, 0.0f, sizeof(float) * w_size);
+        filter->w_size = w_size;
+        filter->sum = 0;
+        filter->head = 0;
 }
 
 

@@ -8,8 +8,23 @@ config SOC_STM32H750VB
     default y
 
 menu "Onboard Peripheral Drivers"
+    config BSP_USING_TIM1
+        bool "Enable Timer1 (hwtimer)"
+        select RT_USING_HWTIMER
+        default n
+        
+    config BSP_USING_ADC1
+        bool "Enable ADC1"
+        select RT_USING_ADC
+        default n
+
+    config BSP_USING_ADC2
+        bool "Enable ADC2"
+        select RT_USING_ADC
+        default n
 
 endmenu
+
 
 menu "On-chip Peripheral Drivers"
 
@@ -34,6 +49,12 @@ menu "On-chip Peripheral Drivers"
                 default y
             config BSP_USING_UART4
                 bool "Enable UART4"
+                default y
+            config BSP_USING_UART6
+                bool "Enable UART6"
+                default y
+            config BSP_USING_UART7
+                bool "Enable UART7"
                 default y
 
         endif

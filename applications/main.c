@@ -15,6 +15,7 @@
 #include "my_dac.h"
 #include "filter.h"
 
+
 //-----------------------------------------------------------------
 // 宏定义
 //-----------------------------------------------------------------
@@ -79,6 +80,7 @@ static struct rt_spi_device spi_dev_ads8688; 		/* SPI设备ads8688对象 */
 static struct stm32_hw_spi_cs  spi_cs;  			/* SPI设备CS片选引脚 */
 
 struct median_filter adc_median_filter; 
+rt_uint16_t str[110];
 
 
 void ads8688_write_command(uint16_t comm)
@@ -289,6 +291,8 @@ MSH_CMD_EXPORT(stop,stop);
 
 int main(void)
 {
+	
+	
 	uint16_t adc_data_tmp = 0;
 	uint16_t adc_data = 0;
 
@@ -310,6 +314,8 @@ int main(void)
 	rt_hw_ads8688_config();
 	median_filter_init(&adc_median_filter, 10);
 	
+
+		
     while (1)
     {
 		err = ads8688_get_man_ch_data(MAN_CH_0,&adc_data_tmp);
@@ -337,10 +343,23 @@ int main(void)
 		if(count ++ >= 20)
 		{
 			count = 0;
-			sprintf ((char *)dis_buf,"CH0: %10.4lfmV  D: %04X", volt_mV , (uint16_t)adc_data);
-			rt_kprintf("%s\r\n", (char *)dis_buf);
-			rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
+//			sprintf ((char *)dis_buf,"CH0: %10.4lfmV  D: %04X", volt_mV , (uint16_t)adc_data);
+//			rt_kprintf("%s\r\n", (char *)dis_buf);
+//			rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
+			
+			
+			
+
+				
+
+			
 		}
+		
+		
+		
+		
+		
+		
 		
 		if(flow_rate < g_set_flow_val - 500)
 		{
