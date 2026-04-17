@@ -348,6 +348,7 @@ int main(void)
 //			rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
 			
 			
+			mb_write_holding_register(1, 1, 0, 50, 1234);
 			
 
 				

@@ -12,7 +12,7 @@ uint8_t uart5_rx_buffer[UART5_RX_BUFFER_SIZE];
 uint16_t uart5_rx_count = 0;
 
 
-char serial_dev_name[][6] = {" ","uart1","uart2","uart3","uart4","uart5"};
+char serial_dev_name[][5] = {" ","uart1","uart2","uart3","uart4"};
 static rt_device_t serial_dev[SERIAL_NUM_MAX+1];
 static struct rt_event uart_rcv_event;
 static rt_timer_t timer[SERIAL_NUM_MAX+1] = {RT_NULL};

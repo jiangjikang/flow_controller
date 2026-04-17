@@ -52,22 +52,18 @@ int32_t writeFlash(uint32_t addr, uint8_t *buf, size_t size)
 
     FLASH_EraseInitTypeDef EraseInitStruct;
 
-    /* 1️⃣ 计算Sector（简单版：按地址判断） */
     if (addr < 0x08020000)
         sector = FLASH_SECTOR_0;
-    else if (addr < 0x08040000)
+    else if (addr < 0x08040000)	
         sector = FLASH_SECTOR_1;
     else
-        sector = FLASH_SECTOR_2;   // 根据你芯片扩展
+        sector = FLASH_SECTOR_2;   
 
-    /* 2️⃣ 解锁 */
     HAL_FLASH_Unlock();
 
-    /* 3️⃣ 清标志 */
     __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS_BANK1);
 		__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS_BANK2);
 
-    /* 4️⃣ 擦除 */
     EraseInitStruct.TypeErase    = FLASH_TYPEERASE_SECTORS;
     EraseInitStruct.Sector       = sector;
     EraseInitStruct.NbSectors    = 1;
@@ -79,8 +75,6 @@ int32_t writeFlash(uint32_t addr, uint8_t *buf, size_t size)
         HAL_FLASH_Lock();
         return RT_ERROR;
     }
-
-    /* 5️⃣ 写入（必须32字节对齐） */
     uint32_t addr_copy = addr;
     uint32_t i = 0;
 
@@ -99,10 +93,8 @@ int32_t writeFlash(uint32_t addr, uint8_t *buf, size_t size)
         addr_copy += 32;
     }
 
-    /* 6️⃣ 上锁 */
     HAL_FLASH_Lock();
 
-    /* 7️⃣ 校验 */
     for (i = 0; i < size; i++)
     {
         if (*(uint8_t *)(addr + i) != buf[i])
