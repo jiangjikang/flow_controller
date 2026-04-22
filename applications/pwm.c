@@ -7,7 +7,7 @@
 
 
 #define PWM_CHNNEL_NUM  MB_MASTER_TOTAL_SLAVE_NUM
-#define HWTIMER_DEV_NAME   "timer3"     /* 定时器名称 */
+#define HWTIMER_DEV_NAME   "timer1"     /* 定时器名称 */
 rt_device_t hwtimer_dev = RT_NULL;   	/* 定时器设备句柄 */
 
 

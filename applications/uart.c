@@ -15,7 +15,7 @@ uint16_t uart5_rx_count = 0;
 
 
 char *serial_dev_name[SERIAL_NUM_MAX] = {"uart1","uart2","uart3","uart4"};
-static rt_device_t serial_dev[SERIAL_NUM_MAX+1];
+static rt_device_t serial_dev[SERIAL_NUM_MAX];
 static struct rt_event uart_rcv_event;
 static rt_timer_t timer[SERIAL_NUM_MAX+1] = {RT_NULL};
 
@@ -30,10 +30,10 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
         if(dev == serial_dev[i])
         {
             rt_timer_start(timer[i]);
-            if(dev == serial_dev[5] )
+            if(dev == serial_dev[3] )
             {
                 char ch;
-                rt_device_read(serial_dev[5], 0, &ch, 1);
+                rt_device_read(serial_dev[3], 0, &ch, 1);
                 if(uart5_rx_count < UART5_RX_BUFFER_SIZE-1)
                 {
                     uart5_rx_buffer[uart5_rx_count++] = ch;
@@ -193,7 +193,7 @@ static int uart_dma_init(void)
     config.bufsz     = 256;
     config.parity    = PARITY_NONE;
 
-    for( uint16_t i = 2; i <= SERIAL_NUM_MAX ; i++)
+    for( uint16_t i = 0; i < SERIAL_NUM_MAX ; i++)
     {
         rt_device_control(serial_dev[i], RT_DEVICE_CTRL_CONFIG, &config);
     }
@@ -206,18 +206,13 @@ static int uart_dma_init(void)
         goto cmd_fail;
     }
 
-    for( uint16_t i = 1; i <= SERIAL_NUM_MAX - 1; i++)
+    for( uint8_t i = 0; i < SERIAL_NUM_MAX; i++)
     {
         /* 以 DMA 接收及轮询发送方式打开串口设备 */
         rt_device_open(serial_dev[i], RT_DEVICE_FLAG_DMA_RX);
         /* 设置接收回调函数 */
         rt_device_set_rx_indicate(serial_dev[i], uart_input);
     }
-
-    /* 以中断接收及轮询发送模式打开串口设备 */
-    rt_device_open(serial_dev[5], RT_DEVICE_FLAG_INT_RX);
-    /* 设置接收回调函数 */
-    rt_device_set_rx_indicate(serial_dev[5], uart_input);
 
 
     timer[1] = rt_timer_create("timer1", timeout1,RT_NULL, 30 ,RT_TIMER_FLAG_ONE_SHOT);
@@ -247,16 +242,16 @@ static int uart_dma_init(void)
     }
 
 
-    timer[4] = rt_timer_create("timer4", timeout4,RT_NULL, DELAY_BETWEEN_POLLS,RT_TIMER_FLAG_ONE_SHOT);
-    if (timer[4] == RT_NULL)
+    timer[SERIAL_NUM_MAX] = rt_timer_create("timer4", timeout4,RT_NULL, DELAY_BETWEEN_POLLS,RT_TIMER_FLAG_ONE_SHOT);
+    if (timer[SERIAL_NUM_MAX] == RT_NULL)
     {
         rt_kprintf("create timer4 failed.\n");
         ret = RT_ERROR;
         goto cmd_fail;
     }
 
-    timer[5] = rt_timer_create("timer5", timeout5,RT_NULL, DELAY_BETWEEN_POLLS,RT_TIMER_FLAG_ONE_SHOT);
-    if (timer[5] == RT_NULL)
+    timer[SERIAL_NUM_MAX] = rt_timer_create("timer5", timeout5,RT_NULL, DELAY_BETWEEN_POLLS,RT_TIMER_FLAG_ONE_SHOT);
+    if (timer[SERIAL_NUM_MAX] == RT_NULL)
     {
         rt_kprintf("create timer5 failed.\n");
         ret = RT_ERROR;

@@ -617,6 +617,11 @@
               <FileType>1</FileType>
               <FilePath>.\board\CubeMX_Config\Core\Src\stm32h7xx_hal_msp.c</FilePath>
             </File>
+            <File>
+              <FileName>drv_hwtimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\libraries\HAL_Drivers\drv_hwtimer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

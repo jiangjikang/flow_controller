@@ -299,6 +299,8 @@
 /* Onboard Peripheral Drivers */
 
 #define BSP_USING_TIM1
+#define BSP_USING_TIM2
+#define BSP_USING_TIM3
 #define BSP_USING_ADC1
 #define BSP_USING_ADC2
 /* end of Onboard Peripheral Drivers */

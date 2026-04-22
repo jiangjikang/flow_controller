@@ -275,7 +275,7 @@ static int analog_collector_init(void)
     return ret;
 }
 
-INIT_ENV_EXPORT(analog_collector_init);
+//INIT_ENV_EXPORT(analog_collector_init);
 
 
 
