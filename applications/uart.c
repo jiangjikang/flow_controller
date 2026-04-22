@@ -7,12 +7,14 @@
 
 #define   USING_UART5
 
+
+
 #define UART5_RX_BUFFER_SIZE   128
 uint8_t uart5_rx_buffer[UART5_RX_BUFFER_SIZE];
 uint16_t uart5_rx_count = 0;
 
 
-char serial_dev_name[][5] = {" ","uart1","uart2","uart3","uart4"};
+char *serial_dev_name[SERIAL_NUM_MAX] = {"uart1","uart2","uart3","uart4"};
 static rt_device_t serial_dev[SERIAL_NUM_MAX+1];
 static struct rt_event uart_rcv_event;
 static rt_timer_t timer[SERIAL_NUM_MAX+1] = {RT_NULL};
@@ -172,8 +174,10 @@ static int uart_dma_init(void)
 
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
 
-    for( uint16_t i = 1; i <= SERIAL_NUM_MAX ; i++)
+	
+    for( uint16_t i = 0; i < SERIAL_NUM_MAX ; i++)
     {
+				
         serial_dev[i] = rt_device_find(serial_dev_name[i]);
         if (!serial_dev[i])
         {
@@ -258,8 +262,7 @@ static int uart_dma_init(void)
         ret = RT_ERROR;
         goto cmd_fail;
     }
-
-
+		
 cmd_fail:
 
     return ret;

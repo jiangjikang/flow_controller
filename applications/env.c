@@ -48,7 +48,7 @@ int32_t writeFlash(uint32_t addr, uint8_t *buf, size_t size)
 {
     HAL_StatusTypeDef status;
     uint32_t sector;
-    uint32_t sector_error = 0;
+    uint32_t sector_error = 0;	
 
     FLASH_EraseInitTypeDef EraseInitStruct;
 

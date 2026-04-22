@@ -16,7 +16,7 @@ enum serial_num
 
 
 
-#define SERIAL_NUM_MAX  5	//最大串口号
+#define SERIAL_NUM_MAX  4	//最大串口号
 #define RCV_EVENT_FLAG_SERIAL(i)  (1 << i)  //接收事件标志
 
 

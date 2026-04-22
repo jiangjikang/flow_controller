@@ -348,12 +348,15 @@ int main(void)
 //			rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
 			
 			
-			mb_write_holding_register(1, 1, 0, 50, 1234);
-			
-
-				
-
-			
+			rt_device_t device = rt_device_find("uart3");
+			if (!device)
+			{
+				rt_kprintf("find %s fialed!");
+			}
+			else
+			{
+				rt_kprintf("OK");
+			}
 		}
 		
 		

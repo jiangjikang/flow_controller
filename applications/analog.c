@@ -287,7 +287,6 @@ static int analog_thread_init(void)
 
     if (analog_thread != RT_NULL)
         rt_thread_startup(analog_thread);
-
 }
 INIT_APP_EXPORT(analog_thread_init);
 
