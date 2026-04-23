@@ -398,54 +398,9 @@
               <FilePath>.\applications\filter.c</FilePath>
             </File>
             <File>
-              <FileName>modbus.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\modbus.c</FilePath>
-            </File>
-            <File>
-              <FileName>analog.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\analog.c</FilePath>
-            </File>
-            <File>
-              <FileName>calibration.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\calibration.c</FilePath>
-            </File>
-            <File>
               <FileName>crc16.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\applications\crc16.c</FilePath>
-            </File>
-            <File>
-              <FileName>debug.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\debug.c</FilePath>
-            </File>
-            <File>
-              <FileName>env.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\env.c</FilePath>
-            </File>
-            <File>
-              <FileName>pwm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\pwm.c</FilePath>
-            </File>
-            <File>
-              <FileName>rbtree.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\rbtree.c</FilePath>
-            </File>
-            <File>
-              <FileName>uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\uart.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_table.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\user_table.c</FilePath>
             </File>
           </Files>
         </Group>

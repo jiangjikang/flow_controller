@@ -12,6 +12,18 @@ uint16_t user_reg_hold_buf_2[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_HOLDING_NREGS];
 uint16_t user_reg_hold_buf[M_REG_HOLDING_NREGS];
 
 
+
+/**
+  * @brief  Modbus RTU 主站读取保持寄存器（Holding Register） 的实现函数。
+	*					它通过串口向从站发送 03H 功能码命令，并接收返回数据，把读取到的寄存器值存入缓冲区。
+  * @param  serial_nu: 		使用哪个串口
+	*	@param	slave_addr: 	Modbus 从机地址
+	*	@param	reg_addr: 		起始寄存器地址
+	*	@param	reg_num:			要读取的寄存器数量
+  * @param  timeout:			接收超时时间
+  *          
+  * @retval 
+  */
 rt_err_t mb_read_holding_register(enum serial_num serial_nu,uint8_t slave_addr, uint16_t reg_addr, uint16_t reg_num, uint32_t timeout)
 {
     uint16_t rx_length;
@@ -29,11 +41,8 @@ rt_err_t mb_read_holding_register(enum serial_num serial_nu,uint8_t slave_addr, 
     crc_code = crc_16(cmd, sizeof(cmd) - 2);
     cmd[6] = (uint8_t)(crc_code & 0x00FF);
     cmd[7] = (uint8_t)(crc_code >> 8);
-    // rs485_tx_mode();
-    // rt_thread_mdelay(1);
-	clear_rxbuffer(serial_nu);
+		clear_rxbuffer(serial_nu);
     serial_send(serial_nu,cmd, sizeof(cmd));
-    //  rs485_rx_mode();
     rx_length = serial_recv(serial_nu, rx_buffer, sizeof(rx_buffer),timeout);
 
     if (rx_length < 2)
@@ -72,6 +81,16 @@ cmd_fail:
 }
 
 
+
+/**
+  * @brief  同时向多个从机发送 Modbus 03H 读取命令，然后统一等待，再逐个读取各串口返回数据。
+	*	@param	slave_addr: 	Modbus 从机地址
+	*	@param	reg_addr: 		起始寄存器地址
+	*	@param	reg_num:			要读取的寄存器数量
+  * @param  timeout:			接收超时时间
+  *          
+  * @retval 
+  */
 rt_err_t mb_parallel_read_holding_register(uint8_t slave_addr, uint16_t reg_addr, uint16_t reg_num, uint32_t timeout)
 {
     uint16_t rx_length;
@@ -134,6 +153,15 @@ rt_err_t mb_parallel_read_holding_register(uint8_t slave_addr, uint16_t reg_addr
 }
 
 
+
+/**
+  * @brief  向多个串口上的多个设备，同时写入同一个寄存器地址，但每个设备写入的值可以不同。
+	*	@param	slave_addr: 	Modbus 从机地址
+	*	@param	reg_addr: 		要写入的寄存器地址
+	*	@param	data[]:			每个设备对应写入的数据
+  * @param  timeout:			等待回复时间
+  * @retval 
+  */
 rt_err_t mb_write_holding_register_2(uint8_t slave_addr, uint16_t reg_addr, uint16_t data[], uint32_t timeout)
 {
     uint16_t crc_code;
@@ -186,7 +214,15 @@ rt_err_t mb_write_holding_register_2(uint8_t slave_addr, uint16_t reg_addr, uint
 }
 
 
-
+/**
+  * @brief  通过指定串口，向某个 Modbus 从机写入一个保持寄存器（06H 功能码），并等待从机确认。
+	*	@param	serial_nu：		使用哪个串口
+	*	@param	slave_addr: 	Modbus 从机地址
+	*	@param	reg_addr: 		要写入的寄存器地址
+	*	@param	data:					写入的数据
+  * @param  timeout:			等待回复时间
+  * @retval 
+  */
 rt_err_t mb_write_holding_register(enum serial_num serial_nu,uint8_t slave_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout)
 {
     uint16_t crc_code;
@@ -238,6 +274,17 @@ cmd_fail:
     return res;
 }
 
+
+
+/**
+  * @brief  向指定从机，从某个起始寄存器地址开始，一次连续写入 8 个寄存器（共16字节数据）。
+	*	@param	serial_nu：		使用哪个串口
+	*	@param	slave_addr: 	Modbus 从机地址
+	*	@param	reg_addr: 		要写入的寄存器地址
+	*	@param	data[]:				要写入的8个寄存器值
+  * @param  timeout:			等待回复时间
+  * @retval 
+  */
 rt_err_t mb_write_8_holding_register(enum serial_num serial_nu,uint8_t slave_addr, uint16_t reg_addr, uint16_t data[], uint32_t timeout)
 {
     uint16_t crc_code;
@@ -339,6 +386,8 @@ cmd_fail:
 //cmd_fail:
 //    return result;
 //}
+
+
 
 
 
