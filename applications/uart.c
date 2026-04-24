@@ -1,12 +1,11 @@
 #include "uart.h"
-#include "rtthread.h"
 #include "board.h"
 
 #define UART7_RX_BUFFER_SIZE	128
 uint8_t uart7_rx_buffer[UART7_RX_BUFFER_SIZE];
 uint16_t uart7_rx_count = 0;
 
-char *serial_dev_name[6] = {"uart3", "uart4", "uart6", "uart7"};
+char *serial_dev_name[SERIAL_NUM_MAX] = {"uart3", "uart4", "uart6", "uart7"};
 static rt_device_t serial_dev[SERIAL_NUM_MAX];
 static struct rt_event uart_rcv_event;
 static rt_timer_t timer[SERIAL_NUM_MAX] = {RT_NULL};
@@ -65,6 +64,54 @@ void clear_rxbuffer(enum serial serial_num)
 	rt_event_recv(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(serial_num), RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR, 0, RT_NULL);
 	rt_device_read(serial_dev[serial_num], 0, buf_, sizeof(buf_));
 }
+
+
+
+rt_size_t serial_send(enum serial serial_num,void *buf,rt_size_t size)
+{
+#ifdef HALF_DUPLEX_MODE
+    rt_size_t ret;
+    USART_TypeDef * puart = NULL;
+    if(serial_nu == SERIAL_2)
+    {
+        puart = USART2;
+    }
+    else if(serial_nu == SERIAL_3)
+    {
+        puart = USART3;
+    }
+    else if(serial_nu == SERIAL_4)
+    {
+        puart = UART4;
+    }
+    // HAL_HalfDuplex_EnableTransmitter(&huart1);
+    uint32_t tmpreg = 0x00U;
+    if(puart != NULL)
+    {
+        tmpreg = puart->CR1;
+        tmpreg &= (uint32_t)~((uint32_t)(USART_CR1_TE | USART_CR1_RE));
+        tmpreg |= (uint32_t)USART_CR1_TE;
+        puart->CR1 = tmpreg;
+    }
+
+    ret = rt_device_write(serial_dev[serial_nu], 0, buf,size);
+    if(puart != NULL)
+    {
+        tmpreg = puart->CR1;
+        tmpreg &= (uint32_t)~((uint32_t)(USART_CR1_TE | USART_CR1_RE));
+        tmpreg |= (uint32_t)USART_CR1_RE;
+        puart->CR1 = tmpreg;
+    }
+    return ret;
+	
+#else 
+	return rt_device_write(serial_dev[serial_num], 0, buf,size);
+	
+#endif
+	
+}
+
+
 
 
 
