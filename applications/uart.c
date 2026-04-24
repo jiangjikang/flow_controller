@@ -66,11 +66,28 @@ void clear_rxbuffer(enum serial serial_num)
 	rt_device_read(serial_dev[serial_num], 0, buf_, sizeof(buf_));
 }
 
+
+
 static void timeout1(void *parameter)
+{
+    rt_event_send(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(0));
+}
+static void timeout2(void *parameter)
 {
     rt_event_send(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(1));
 }
+static void timeout3(void *parameter)
+{
+    rt_event_send(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(2));
+}
+static void timeout4(void *parameter)
+{
+    rt_event_send(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(3));
+}
 
+
+
+#define DELAY_BETWEEN_POLLS   40
 static int uart_dma_init(void)
 {
 	rt_err_t ret = RT_EOK;
@@ -122,6 +139,28 @@ static int uart_dma_init(void)
         ret = RT_ERROR;
         goto cmd_fail;
   }
+	timer[1] = rt_timer_create("timer2", timeout2, RT_NULL, DELAY_BETWEEN_POLLS, RT_TIMER_FLAG_ONE_SHOT);
+	if (timer[0] == RT_NULL)
+  {
+        rt_kprintf("create timer2 failed.\n");
+        ret = RT_ERROR;
+        goto cmd_fail;
+  }
+	timer[2] = rt_timer_create("timer3", timeout3, RT_NULL, DELAY_BETWEEN_POLLS, RT_TIMER_FLAG_ONE_SHOT);
+	if (timer[0] == RT_NULL)
+  {
+        rt_kprintf("create timer3 failed.\n");
+        ret = RT_ERROR;
+        goto cmd_fail;
+  }
+	timer[3] = rt_timer_create("timer4", timeout4, RT_NULL, DELAY_BETWEEN_POLLS, RT_TIMER_FLAG_ONE_SHOT);
+	if (timer[0] == RT_NULL)
+  {
+        rt_kprintf("create timer4 failed.\n");
+        ret = RT_ERROR;
+        goto cmd_fail;
+  }
+	
 	
 cmd_fail:
 	return ret;
