@@ -402,6 +402,16 @@
               <FileType>1</FileType>
               <FilePath>.\applications\crc16.c</FilePath>
             </File>
+            <File>
+              <FileName>modbus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\modbus.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\uart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
