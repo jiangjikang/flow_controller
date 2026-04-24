@@ -347,16 +347,6 @@ int main(void)
 //			rt_kprintf("%s\r\n", (char *)dis_buf);
 //			rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
 			
-			
-			rt_device_t device = rt_device_find("uart3");
-			if (!device)
-			{
-				rt_kprintf("find %s fialed!");
-			}
-			else
-			{
-				rt_kprintf("OK");
-			}
 		}
 		
 		
