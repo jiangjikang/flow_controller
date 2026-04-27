@@ -317,7 +317,7 @@ int main(void)
 	median_filter_init(&adc_median_filter, 10);
 	
 	
-	mb_write_holding_register(0, 1, 0, 1234, 0xF);
+	mb_write_holding_register(0, 1, 50, 1234, 0xF);
 	
 	mb_write_holding_register(0, 1, 34, 1, 0xF);
 		
