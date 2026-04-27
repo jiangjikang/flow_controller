@@ -5,7 +5,8 @@
 uint8_t uart7_rx_buffer[UART7_RX_BUFFER_SIZE];
 uint16_t uart7_rx_count = 0;
 
-char *serial_dev_name[SERIAL_NUM_MAX] = {"uart3", "uart4", "uart6", "uart7"};
+//char *serial_dev_name[SERIAL_NUM_MAX] = {"uart3", "uart4", "uart6", "uart7"};
+char *serial_dev_name[SERIAL_NUM_MAX] = {"uart6"};
 static rt_device_t serial_dev[SERIAL_NUM_MAX];
 static struct rt_event uart_rcv_event;
 static rt_timer_t timer[SERIAL_NUM_MAX] = {RT_NULL};
@@ -16,7 +17,6 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
 {
 	rt_err_t result = RT_EOK;
 	uint8_t i = 0;
-	
 	for (i = 0; i < SERIAL_NUM_MAX; i++)
 	{
 		if (dev == serial_dev[i])
@@ -24,6 +24,11 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
 			rt_timer_start(timer[i]);
 		}
 	}
+	uint8_t buf[10];
+	int len = rt_device_read(dev,0,buf,10);
+
+	for(int i=0;i<len;i++)
+			rt_kprintf("%02X ", buf[i]);
 	return result;
 }
 
@@ -171,13 +176,8 @@ static int uart_dma_init(void)
     goto cmd_fail;
 	}
 	
-	for( uint16_t i = 0; i < SERIAL_NUM_MAX; i++)
-  {
-        /* 以 DMA 接收及轮询发送方式打开串口设备 */
-        rt_device_open(serial_dev[i], RT_DEVICE_FLAG_DMA_RX);
-        /* 设置接收回调函数 */
-        rt_device_set_rx_indicate(serial_dev[i], uart_input);
-  }
+
+	
 	
 	timer[0] = rt_timer_create("timer1", timeout1, RT_NULL, 30, RT_TIMER_FLAG_ONE_SHOT);
 	if (timer[0] == RT_NULL)
@@ -187,25 +187,34 @@ static int uart_dma_init(void)
         goto cmd_fail;
   }
 	timer[1] = rt_timer_create("timer2", timeout2, RT_NULL, DELAY_BETWEEN_POLLS, RT_TIMER_FLAG_ONE_SHOT);
-	if (timer[0] == RT_NULL)
+	if (timer[1] == RT_NULL)
   {
         rt_kprintf("create timer2 failed.\n");
         ret = RT_ERROR;
         goto cmd_fail;
   }
 	timer[2] = rt_timer_create("timer3", timeout3, RT_NULL, DELAY_BETWEEN_POLLS, RT_TIMER_FLAG_ONE_SHOT);
-	if (timer[0] == RT_NULL)
+	if (timer[2] == RT_NULL)
   {
         rt_kprintf("create timer3 failed.\n");
         ret = RT_ERROR;
         goto cmd_fail;
   }
 	timer[3] = rt_timer_create("timer4", timeout4, RT_NULL, DELAY_BETWEEN_POLLS, RT_TIMER_FLAG_ONE_SHOT);
-	if (timer[0] == RT_NULL)
+	if (timer[3] == RT_NULL)
   {
         rt_kprintf("create timer4 failed.\n");
         ret = RT_ERROR;
         goto cmd_fail;
+  }
+	
+	
+	for( uint8_t i = 0; i < SERIAL_NUM_MAX; i++)
+  {
+        /* 以 DMA 接收及轮询发送方式打开串口设备 */
+			rt_device_open(serial_dev[i], RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_INT_TX);
+			/* 设置接收回调函数 */
+			rt_device_set_rx_indicate(serial_dev[i], uart_input);
   }
 	
 	

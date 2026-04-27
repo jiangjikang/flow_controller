@@ -16,6 +16,14 @@ typedef enum {
 
 } LOG_LEVEL;
 
+extern uint32_t log_level;
+
+#define log_develop(level,format, ...)  \
+do { \
+    if((uint32_t)level & log_level)\
+    rt_kprintf(format,##__VA_ARGS__);\
+} while (0)
+
 
 
 #endif
