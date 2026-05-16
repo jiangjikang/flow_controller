@@ -290,10 +290,12 @@ void stop(void)
 }
 MSH_CMD_EXPORT(stop,stop);
 
+extern rt_device_t serial_dev[];
+uint16_t len_test = 0;
+
 
 int main(void)
 {
-	
 	
 	uint16_t adc_data_tmp = 0;
 	uint16_t adc_data = 0;
@@ -316,10 +318,11 @@ int main(void)
 	rt_hw_ads8688_config();
 	median_filter_init(&adc_median_filter, 10);
 	
-	
-	mb_write_holding_register(0, 1, 50, 1234, 0xF);
-	
-	mb_write_holding_register(0, 1, 34, 1, 0xF);
+			mb_write_holding_register(SERIAL_6, 1, 50, 1234, 100);
+			for (uint8_t i = 0; i < 100; i++){}
+//		  mb_parallel_read_holding_register(1, 0, 100, 100);
+//			for (uint8_t i = 0; i < 100; i++);
+			mb_write_holding_register(SERIAL_6, 1, 34, 2, 100);
 		
     while (1)
     {
@@ -354,13 +357,6 @@ int main(void)
 			
 				
 			}
-			
-			
-			
-			
-			
-			
-			
 			
 			
 			if(flow_rate < g_set_flow_val - 500)

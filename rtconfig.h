@@ -41,7 +41,7 @@
 
 #define RT_USING_DEVICE
 #define RT_USING_CONSOLE
-#define RT_CONSOLEBUF_SIZE 128
+#define RT_CONSOLEBUF_SIZE 512
 #define RT_CONSOLE_DEVICE_NAME "uart1"
 /* end of Kernel Device Object */
 #define RT_VER_NUM 0x40100
@@ -77,7 +77,7 @@
 #define RT_USING_SERIAL
 #define RT_USING_SERIAL_V1
 #define RT_SERIAL_USING_DMA
-#define RT_SERIAL_RB_BUFSZ 1024
+#define RT_SERIAL_RB_BUFSZ 2048
 #define RT_USING_HWTIMER
 #define RT_USING_PIN
 #define RT_USING_ADC

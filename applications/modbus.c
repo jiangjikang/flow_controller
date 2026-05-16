@@ -87,8 +87,6 @@ cmd_fail:
 }
 
 
-
-
 /**
  * @brief  并行读取多个从站保持寄存器（Modbus 0x03）
  *
@@ -124,12 +122,12 @@ rt_err_t mb_parallel_read_holding_register(uint8_t slave_addr, uint16_t reg_addr
     cmd[7] = (uint8_t)(crc_code >> 8);
 
     uint16_t id = 1;
-		enum serial number = SERIAL_3;
+		enum serial number = SERIAL_6;
     do
     {
         clear_rxbuffer(number);
         serial_send(number,cmd, sizeof(cmd));
-				number = (enum serial)SERIAL_3 + 1;
+				number = (enum serial)SERIAL_6;
     } while(++id <= MB_MASTER_TOTAL_SLAVE_NUM);
 
     rt_thread_mdelay(timeout);
@@ -201,7 +199,7 @@ rt_err_t mb_write_holding_register_2(uint8_t slave_addr, uint16_t reg_addr, uint
 	cmd[3] = (uint8_t)(reg_addr & 0x00FF);
 	
 	uint16_t id = 1;
-	enum serial number = SERIAL_3;
+	enum serial number = SERIAL_6;
 	do
 	{
 		
@@ -212,8 +210,8 @@ rt_err_t mb_write_holding_register_2(uint8_t slave_addr, uint16_t reg_addr, uint
 		cmd[7] = (uint8_t)(crc_code >> 8);
 		clear_rxbuffer(number);
 		serial_send(number,cmd, sizeof(cmd));
-		number = (enum serial)SERIAL_3 + 1;
-	} while(++id <= MB_MASTER_TOTAL_SLAVE_NUM);
+		number = (enum serial)SERIAL_6;
+	} while(++id < MB_MASTER_TOTAL_SLAVE_NUM);
 	rt_thread_mdelay(timeout);
 	
 	uint8_t rx_buffer[8];
@@ -240,7 +238,7 @@ rt_err_t mb_write_holding_register_2(uint8_t slave_addr, uint16_t reg_addr, uint
             res |= (1<<(id-1));
             continue;
         }
-    } while(++id <= MB_MASTER_TOTAL_SLAVE_NUM);
+    } while(++id < MB_MASTER_TOTAL_SLAVE_NUM);
 	
 	return res;
 }
@@ -282,35 +280,36 @@ rt_err_t mb_write_holding_register(enum serial serial_num,uint8_t slave_addr, ui
         log_develop(MB_INFO, "%02x ", cmd[i]);
     }
     log_develop(MB_INFO,"\n");
-    // rs485_tx_mode();
-    // rt_thread_mdelay(1);
     serial_send(serial_num,cmd, sizeof(cmd));
 
     uint8_t rx_buffer[8];
-    uint8_t rx_length;
+    rt_size_t rx_length;
 
     //  rs485_rx_mode();
     uint16_t total = 0;
 
 	while(total < sizeof(rx_buffer))
 	{
-			total += serial_recv(serial_num,
-													 &rx_buffer[total],
-													 sizeof(rx_buffer) - total,
-													 timeout);
+			rx_length = serial_recv(
+											serial_num,
+											&rx_buffer[total],
+											sizeof(rx_buffer) - total,
+											timeout);
+
+			if(rx_length == 0)
+			{
+					break;
+			}
+
+			total += rx_length;
 	}
 
-	if(total != sizeof(rx_buffer))
-	{
-			log_develop(MB_INFO,"length error total=%d\n", total);
-	}
-
-//    if (rx_length != sizeof(rx_buffer))
-//    {
-//        log_develop(MB_INFO,"length error\n");
-//        res = RT_ERROR;
-//        goto cmd_fail;
-//    }
+    if (rx_length != sizeof(rx_buffer))
+    {
+        log_develop(MB_INFO,"length error\n");
+        res = RT_ERROR;
+        goto cmd_fail;
+    }
     if(rx_buffer[0] !=  slave_addr) {
         log_develop(MB_INFO,"addr error\n");
         res = RT_ERROR;

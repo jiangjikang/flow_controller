@@ -7,16 +7,16 @@
 #include <rtthread.h>
 #include "modbus.h"
 
+#define MODBUS_FRAME_TIMEOUT rt_tick_from_millisecond(50)
 
 enum serial
 {
-    SERIAL_3 = 0,
+    SERIAL_6 = 0,
 //    SERIAL_4,
 //    SERIAL_6,
 //    SERIAL_7,
     SERIAL_NUM_MAX
 };
-
 
 struct slave_table
 {
@@ -26,10 +26,9 @@ struct slave_table
 
 
 #define RCV_EVENT_FLAG_SERIAL(i) (1 << i)
-#define SERIAL_NUM_MAX	1
 
 
 rt_size_t serial_recv(enum serial serial_num, void *buf, rt_size_t size, uint32_t timeout);
-rt_size_t serial_send(enum serial serial_num,void *buf,rt_size_t size);
+rt_size_t serial_send(enum serial serial_num, uint8_t *buf,rt_size_t size);
 
 #endif
