@@ -128,42 +128,60 @@ rt_err_t mb_parallel_read_holding_register(uint8_t slave_addr, uint16_t reg_addr
         clear_rxbuffer(number);
         serial_send(number,cmd, sizeof(cmd));
 				number = (enum serial)SERIAL_6;
-    } while(++id <= MB_MASTER_TOTAL_SLAVE_NUM);
+    } while(++id < MB_MASTER_TOTAL_SLAVE_NUM);
 
     rt_thread_mdelay(timeout);
     id = 1;
     do
     {
         rx_length = serial_recv(number, rx_buffer, sizeof(rx_buffer),0);
-        if (rx_length < 2)
-        {
-            log_develop(MB_INFO,"length error\n");
-            res |= (1<<(id-1));
-            continue;
-        }
+			
+				if (rx_length != sizeof(rx_buffer))
+				{
+						log_develop(MB_INFO,"length error\n");
+						res = RT_ERROR;
+						continue;
+				}
+				if(rx_buffer[0] !=  slave_addr) {
+						log_develop(MB_INFO,"addr error\n");
+						res = RT_ERROR;
+						continue;
+				}
+				crc_code = ((uint16_t)rx_buffer[rx_length - 1] << 8) | rx_buffer[rx_length - 2];
+				if (crc_code != crc_16(rx_buffer, rx_length - 2)) {
+						log_develop(MB_INFO,"crc error\n");
+						res = RT_ERROR;
+						continue;
+				}
+//        if (rx_length != sizeof(rx_buffer))
+//        {
+//            log_develop(MB_INFO,"length error\n");
+//            res |= (1<<(id-1));
+//            continue;
+//        }
 
-        if(rx_buffer[0] !=  slave_addr) {
-            log_develop(MB_INFO,"addr error\n");
-            res |= (1<<(id-1));
-            continue;
-        }
-        crc_code = ((uint16_t)rx_buffer[rx_length - 1] << 8) | rx_buffer[rx_length - 2];
-        if (crc_code != crc_16(rx_buffer, rx_length - 2)) {
-            log_develop(MB_INFO,"crc error\n");
-            res |= (1<<(id-1));
-            continue;
-        }
-        if (rx_buffer[2] != 2 * reg_num) {
-            res |= (1<<(id-1));
-            continue;
-        }
+//        if(rx_buffer[0] !=  slave_addr) {
+//            log_develop(MB_INFO,"addr error\n");
+//            res |= (1<<(id-1));
+//            continue;
+//        }
+//        crc_code = ((uint16_t)rx_buffer[rx_length - 1] << 8) | rx_buffer[rx_length - 2];
+//        if (crc_code != crc_16(rx_buffer, rx_length - 2)) {
+//            log_develop(MB_INFO,"crc error\n");
+//            res |= (1<<(id-1));
+//            continue;
+//        }
+//        if (rx_buffer[2] != 2 * reg_num) {
+//            res |= (1<<(id-1));
+//            continue;
+//        }
         for (uint8_t i = 0, j = 0; j < reg_num; i += 2, j += 1) {
             user_reg_hold_buf_2[id-1][reg_addr + j] = ((uint16_t)rx_buffer[i + 3] << 8) | (uint16_t)rx_buffer[i + 4];
             log_develop(MB_INFO,"ID:%d ",id-1);
             log_develop(MB_INFO, "%04x ", user_reg_hold_buf_2[j]);
         }
         log_develop(MB_INFO,"\n");
-    } while(++id <= MB_MASTER_TOTAL_SLAVE_NUM);
+    } while(++id < MB_MASTER_TOTAL_SLAVE_NUM);
 
     return  res;
 }

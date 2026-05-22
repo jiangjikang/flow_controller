@@ -320,12 +320,13 @@ int main(void)
 	
 			mb_write_holding_register(SERIAL_6, 1, 50, 1234, 100);
 			for (uint8_t i = 0; i < 100; i++){}
-//		  mb_parallel_read_holding_register(1, 0, 100, 100);
+			mb_parallel_read_holding_register(1, 0, 100, 100);
 //			for (uint8_t i = 0; i < 100; i++);
-			mb_write_holding_register(SERIAL_6, 1, 34, 2, 100);
+			
 		
     while (1)
     {
+			
 			err = ads8688_get_man_ch_data(MAN_CH_0,&adc_data_tmp);
 			if(err == RT_EOK)
 			{
@@ -346,15 +347,18 @@ int main(void)
 			{
 				flow_rate = 0;
 			}
-		
 			
+			static uint8_t reg_val = 1;
 			if(count++ >= 20)
 			{
 				count = 0;
 				sprintf ((char *)dis_buf,"CH0: %10.4lfmV  D: %04X", volt_mV , (uint16_t)adc_data);
 				rt_kprintf("%s\r\n", (char *)dis_buf);
 				rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
-			
+				
+				mb_write_holding_register(SERIAL_6, 1, 34, reg_val, 100);
+				reg_val = (reg_val == 1) ? 2 : 1;
+				
 				
 			}
 			
