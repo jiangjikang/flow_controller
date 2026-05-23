@@ -1,0 +1,220 @@
+#include "ADS8688.h"
+#include "my_dac.h"
+
+struct rt_spi_device spi_dev_ads8688; 		/* SPI设备ads8688对象 */
+struct stm32_hw_spi_cs  spi_cs;  			/* SPI设备CS片选引脚 */
+
+struct median_filter adc_median_filter; 
+rt_uint16_t str[110];
+
+float g_set_flow_val = 0;
+float g_k_factor = 1.0f;
+
+
+
+void ads8688_write_command(uint16_t comm)
+{
+	rt_size_t len;
+	uint8_t send_buf[2];
+	
+	send_buf[0] = (uint8_t)(comm >> 8);
+	send_buf[1] = (uint8_t)(comm &0x00FF);	
+	len = rt_spi_send(&spi_dev_ads8688,send_buf,2);
+	__NOP();
+
+}
+
+void ads8688_write_program(uint8_t addr,uint8_t data)
+{
+	rt_size_t len;
+	uint8_t send_buf[2] = {0,0};
+	
+	send_buf[0] = (addr << 1) | 0x01;
+	send_buf[1] = data;
+	
+	len = rt_spi_send(&spi_dev_ads8688,send_buf,2);
+	__NOP();
+}
+
+//void ADS8688_Write_Program(uint8_t addr, uint8_t data)
+//{
+//	uint8_t wr_data[2] = {0x00, 0x00};
+//	
+//	wr_data[0] = (addr << 1) | 0x01;
+//	wr_data[1] = data;
+//	
+//	CS_L;
+//	HAL_SPI_Transmit(&SPI_Handler, wr_data, 2, 0xFFFF);
+//	CS_H;
+//}
+
+rt_err_t ads8688_get_man_ch_data(uint16_t ch, uint16_t *data)
+{
+	rt_err_t err;
+	uint8_t recv_buf[2]={0,0};
+	uint8_t send_buf[2]={0,0};
+	
+	ads8688_write_command(ch);
+	rt_thread_mdelay(1);
+	
+	err = rt_spi_send_then_recv(&spi_dev_ads8688,send_buf,2,recv_buf,2);
+	
+	if(err == RT_EOK)
+	{
+		*data = ((uint16_t)recv_buf[0] << 8) | recv_buf[1];
+	}
+	
+	return err;
+}
+
+
+
+int rt_hw_ads8688_config(void)
+{
+    rt_err_t res;
+
+    spi_cs.GPIO_Pin = GPIO_PIN_4;
+	spi_cs.GPIOx = GPIOE;
+	
+    rt_pin_mode(ADS8688_CS_PIN, PIN_MODE_OUTPUT);    		/* 设置片选管脚模式为输出 */
+	rt_pin_mode(ADS8688_RST_PIN, PIN_MODE_OUTPUT);  
+	rt_pin_mode(ADS8688_DAISY_PIN, PIN_MODE_OUTPUT);   
+	
+    res = rt_spi_bus_attach_device(&spi_dev_ads8688, "spi_dev_ads8688" , "spi4", (void*)&spi_cs);
+    if (res != RT_EOK)
+    {
+        return res;
+    }
+	
+	struct rt_spi_configuration cfg;
+    cfg.data_width = 8;
+    cfg.mode = RT_SPI_MASTER | RT_SPI_MODE_0 | RT_SPI_MSB;
+    cfg.max_hz = 2 * 1000 * 1000;
+
+    rt_spi_configure(&spi_dev_ads8688, &cfg);
+	
+	rt_pin_write(ADS8688_RST_PIN, PIN_LOW);
+	rt_thread_mdelay(1);
+	rt_pin_write(ADS8688_RST_PIN, PIN_HIGH);
+	rt_pin_write(ADS8688_DAISY_PIN, PIN_LOW);
+	
+	ads8688_write_command(RST);
+	
+	rt_thread_mdelay(1);
+	
+	ads8688_write_program(CH0_INPUT_RANGE, VREF_B_25);
+//	ads8688_write_program(CH1_INPUT_RANGE, VREF_B_25);	
+//	ads8688_write_program(CH2_INPUT_RANGE, VREF_B_25);	
+//	ads8688_write_program(CH3_INPUT_RANGE, VREF_B_25);	
+//	ads8688_write_program(CH4_INPUT_RANGE, VREF_B_25);	
+//	ads8688_write_program(CH5_INPUT_RANGE, VREF_B_25);	
+//	ads8688_write_program(CH6_INPUT_RANGE, VREF_B_25);	
+//	ads8688_write_program(CH7_INPUT_RANGE, VREF_B_25);
+	
+	ads8688_write_program(CH_PWR_DN, 0x00);				// 8个通道退出低功耗
+	//ads8688_write_program(AUTO_SEQ_EN, 0xFF);			// 8个通道自动扫描排序
+	ads8688_write_command(MAN_CH_0);
+	
+}
+
+
+
+float convert_current_to_flow(float current)
+{
+	float flow = 0;
+	
+	flow = (current - 4.0f)*(3000.0f - 0.0f)/(20.0f - 4.0f);
+	
+	return flow;
+}
+
+
+void set_dac_output_voltage(float vlot_set_value_mV)
+{
+	uint16_t dac_value = vlot_set_value_mV * 4096 / (3300 *3.1428f);
+	
+	HAL_DAC_SetValue(&DAC1_Handler,DAC_CHANNEL_1,DAC_ALIGN_12B_R,dac_value);		// 设置DAC值
+	HAL_DAC_SetValue(&DAC1_Handler,DAC_CHANNEL_2,DAC_ALIGN_12B_R,dac_value);		// 设置DAC值
+}
+
+static int isspace(int x)
+{
+    if (x == ' ' || x == '\t' || x == '\n' || x == '\f' || x == '\b' || x == '\r')
+        return 1;
+    else
+        return 0;
+}
+
+static int isdigit(int x)
+{
+    if (x <= '9' && x >= '0')
+        return 1;
+    else
+        return 0;
+
+}
+
+static int atoi(const char *nptr)
+{
+    int c;              /* current char */
+    int total;         /* current total */
+    int sign;           /* if '-', then negative, otherwise positive */
+
+    /* skip whitespace */
+    while (isspace((int)(unsigned char)*nptr))
+        ++nptr;
+
+    c = (int)(unsigned char) * nptr++;
+    sign = c;           /* save sign indication */
+    if (c == '-' || c == '+')
+        c = (int)(unsigned char) * nptr++;  /* skip sign */
+
+    total = 0;
+
+    while (isdigit(c)) {
+        total = 10 * total + (c - '0');     /* accumulate digit */
+        c = (int)(unsigned char) * nptr++;  /* get next char */
+    }
+
+    if (sign == '-')
+        return -total;
+    else
+        return total;   /* return result, negated if necessary */
+}
+
+
+
+
+void setvar(int argc, char **argv)
+{
+    if (argc < 3) {
+        rt_kprintf("Please input'setenv <name> <value>'\n");
+        return;
+    }
+    int32_t value = atoi(argv[2]);
+    if (!rt_strcmp(argv[1], "flow")) 
+	{
+        g_set_flow_val =  value;
+    }
+	else if (!rt_strcmp(argv[1], "kfactor")) 
+	{
+        g_k_factor =  (float)value/1000;
+    }
+	else 
+	{ 
+        rt_kprintf("Please input'setenv <name> <value>'\n");
+  }
+}
+MSH_CMD_EXPORT(setvar, set var);
+
+
+void stop(void)
+{
+	g_set_flow_val = 0;
+    set_dac_output_voltage(0);
+	rt_kprintf("stop stop");
+}
+MSH_CMD_EXPORT(stop,stop);
+
+extern rt_device_t serial_dev[];
+uint16_t len_test = 0;

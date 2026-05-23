@@ -322,7 +322,7 @@ rt_err_t mb_write_holding_register(enum serial serial_num,uint8_t slave_addr, ui
 			total += rx_length;
 	}
 
-    if (rx_length != sizeof(rx_buffer))
+    if (total != sizeof(rx_buffer))
     {
         log_develop(MB_INFO,"length error\n");
         res = RT_ERROR;
