@@ -6,6 +6,6 @@
 #include "stm32h7xx_hal.h"
 #include <rtthread.h>
 
-
+void calib_thread_entry(void *parameter);
 
 #endif

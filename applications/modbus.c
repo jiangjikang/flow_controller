@@ -298,6 +298,7 @@ rt_err_t mb_write_holding_register(enum serial serial_num,uint8_t slave_addr, ui
         log_develop(MB_INFO, "%02x ", cmd[i]);
     }
     log_develop(MB_INFO,"\n");
+    clear_rxbuffer(serial_num);
     serial_send(serial_num,cmd, sizeof(cmd));
 
     uint8_t rx_buffer[8];
@@ -333,8 +334,8 @@ rt_err_t mb_write_holding_register(enum serial serial_num,uint8_t slave_addr, ui
         res = RT_ERROR;
         goto cmd_fail;
     }
-    crc_code = ((uint16_t)rx_buffer[rx_length - 1] << 8) | rx_buffer[rx_length - 2];
-    if (crc_code != crc_16(rx_buffer, rx_length - 2)) {
+    crc_code = ((uint16_t)rx_buffer[total - 1] << 8) | rx_buffer[total - 2];
+    if (crc_code != crc_16(rx_buffer, total - 2)) {
         log_develop(MB_INFO,"crc error\n");
         res = RT_ERROR;
         goto cmd_fail;
@@ -403,7 +404,7 @@ rt_err_t mb_write_8_holding_register(enum serial serial_num,uint8_t slave_addr, 
         log_develop(MB_INFO, "%02x ", cmd[i]);
     }
     log_develop(MB_INFO,"\n");
-		
+    clear_rxbuffer(serial_num);
     serial_send(serial_num,cmd, sizeof(cmd));
 
     uint8_t rx_buffer[8];
@@ -518,6 +519,7 @@ rt_err_t mb_rewrite_holding_register(enum serial serial_num,uint8_t slave_addr, 
 cmd_fail:
     return result;
 }
+
 
 
 

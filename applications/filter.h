@@ -29,11 +29,13 @@ struct sliding_average_filter
     float *cache;
 };
 
+//rt_thread_t flow_control = RT_NULL;				// 创建流量控制句柄
+
 void sliding_average_filter_init(struct sliding_average_filter *filter, int16_t w_size);
 float sliding_average_filter(struct sliding_average_filter *filter, float k);
 
 
-
+void flow_control(void *parameter);
 
 
 void median_filter_init(struct median_filter *filter, uint16_t len);
