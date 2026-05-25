@@ -35,7 +35,7 @@ void sliding_average_filter_init(struct sliding_average_filter *filter, int16_t 
 float sliding_average_filter(struct sliding_average_filter *filter, float k);
 
 
-void flow_control(void *parameter);
+void flowControl_thread_entry(void *parameter);
 
 
 void median_filter_init(struct median_filter *filter, uint16_t len);

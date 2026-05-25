@@ -12,6 +12,7 @@
 
 
 rt_err_t mb_read_holding_register(enum serial serial_num,uint8_t slave_addr, uint16_t reg_addr, uint16_t reg_num, uint32_t timeout);
+rt_err_t mb_read_one_holding_register(enum serial serial_num, uint8_t slave_addr, uint16_t reg_addr, uint16_t *value, uint32_t timeout);
 rt_err_t mb_parallel_read_holding_register(uint8_t slave_addr, uint16_t reg_addr, uint16_t reg_num, uint32_t timeout);
 rt_err_t mb_write_holding_register(enum serial serial_num,uint8_t slave_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout);
 rt_err_t mb_rewrite_holding_register(enum serial serial_num,uint8_t slave_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout);
@@ -23,3 +24,4 @@ rt_err_t mb_write_holding_register_2(uint8_t slave_addr, uint16_t reg_addr, uint
 
 
 #endif
+

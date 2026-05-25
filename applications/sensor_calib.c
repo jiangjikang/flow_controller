@@ -4,22 +4,37 @@
 
 
 
+/**
+ * @brief  检测LED是否焊接不良
+ *
+ *
+ * @retval NUL
+ */
+void led_check(void)
+{
+	static int led_reg = 1; // 初始化LED寄存器数值
+	mb_write_holding_register(SERIAL_6, 1, 34, led_reg, 0xF);	// 向该函数以1s为周期发送1和2
+	led_reg = (led_reg == 1) ? 2 : 1;	// 改变led_reg值
+}
+
+
 
 /**
-	标定线程入口函数
-*/
+ * @brief  标定线程入口函数。
+ *
+ * 线程启动后延时等待系统稳定，然后执行一次完整标定流程；如果失败则延时后重试。
+ *
+ * @param[in] parameter  线程参数，当前未使用。
+ */
 void calib_thread_entry(void *parameter)
 {
-		static uint8_t reg_val = 1;
-	
-		mb_write_holding_register(SERIAL_6, 1, 50, 1234, 100);
-		for (uint8_t i = 0; i < 100; i++){}
-		mb_parallel_read_holding_register(1, 0, 100, 100);
+		
+		START_CALIB();	// 宏定义函数：向50号寄存器输入1234启动标定
+    
     while (1)
     {
-			mb_write_holding_register(SERIAL_6, 1, 34, reg_val, 100);
-			reg_val = (reg_val == 1) ? 2 : 1;
-			rt_thread_mdelay(1000); 
+			led_check();	// 单一功能函数用于检测LED是否焊接不良
+      rt_thread_mdelay(1000);
     }
 }
 

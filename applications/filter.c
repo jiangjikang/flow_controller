@@ -92,7 +92,7 @@ void sliding_average_filter_init(struct sliding_average_filter *filter, int16_t 
 }
 
 
-void flow_control(void *parameter)
+void flowControl_thread_entry(void *parameter)
 {
 	uint16_t adc_data_tmp = 0;
 	uint16_t adc_data = 0;
@@ -109,6 +109,7 @@ void flow_control(void *parameter)
 	
 	int32_t adc_value_unfiltered = 0;
 	
+	
 	DAC1_Init();		// ³õÊ¼»¯DAC1
 	/* set LED0 pin mode to output */	
   rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);	
@@ -117,7 +118,7 @@ void flow_control(void *parameter)
 	
 
 	while (1)
-	{
+    {
 		err = ads8688_get_man_ch_data(MAN_CH_0,&adc_data_tmp);
 		if(err == RT_EOK)
 		{
@@ -127,6 +128,7 @@ void flow_control(void *parameter)
 		{
 			rt_kprintf("adc read error!\r\n");
 		}
+		
 		volt_mV = ((float)adc_data-32767)*20480.0/65536;
 		current_mA = volt_mV / 499;
 		
@@ -138,17 +140,14 @@ void flow_control(void *parameter)
 		{
 			flow_rate = 0;
 		}
-		
-		
-		if(count++ >= 20)
+	
+		if(count ++ >= 20)
 		{
 			count = 0;
 			sprintf ((char *)dis_buf,"CH0: %10.4lfmV  D: %04X", volt_mV , (uint16_t)adc_data);
 			rt_kprintf("%s\r\n", (char *)dis_buf);
 			rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
-			
 		}
-		
 		
 		if(flow_rate < g_set_flow_val - 500)
 		{
@@ -200,8 +199,8 @@ void flow_control(void *parameter)
 		
 		set_dac_output_voltage(vlot_set_value_mV);
 
-		rt_thread_mdelay(100); 
-	}
+		rt_thread_mdelay(100);
+    }
 }
 
 
