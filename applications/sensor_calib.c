@@ -34,7 +34,8 @@ void calib_thread_entry(void *parameter)
     while (1)
     {
 			led_check();	// 单一功能函数用于检测LED是否焊接不良
-      rt_thread_mdelay(1000);
+			
+      rt_thread_mdelay(1000);	// 周期运行任务，延时用于让线程进入阻塞态并释放CPU
     }
 }
 

@@ -33,12 +33,12 @@ void start_task_entry(void *parameter)
 		rt_thread_startup(flow_con);
 	}
 	
-//	/* 创建流量标定任务 */
-//	flow_calib = rt_thread_create("calib_thread_entry", calib_thread_entry, RT_NULL, 1024, 2, 2);
-//	if (flow_calib != RT_NULL)
-//	{
-//		rt_thread_startup(flow_calib);
-//	}
+	/* 创建流量标定任务 */
+	flow_calib = rt_thread_create("calib_thread_entry", calib_thread_entry, RT_NULL, 1024, 2, 2);
+	if (flow_calib != RT_NULL)
+	{
+		rt_thread_startup(flow_calib);
+	}
 }
 
 
@@ -52,9 +52,13 @@ int main(void)
 	
 	
 	
-	while (1);
+	while (1)
+	{
+		rt_thread_mdelay(1000);
+	}
 	return RT_EOK;
 }
+
 
 
 
