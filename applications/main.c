@@ -8,56 +8,53 @@
  * 2019-03-05     whj4674672   first version
  */
 
-#include <rtthread.h>
-#include <board.h>
+#include "ADS8688.h"
 #include "sensor_calib.h"
-#include "filter.h"
-#include "modbus.h"
+
+static void start_thread_entry(void *parameter);
 
 
 
 
-/* 线程句柄 */
-rt_thread_t start_thread = RT_NULL;
-rt_thread_t flow_con = RT_NULL;
-rt_thread_t flow_calib = RT_NULL;
-
-
-void start_task_entry(void *parameter)
-{
-	/* 创建流量控制任务 */
-	flow_con = rt_thread_create("flow_control", flowControl_thread_entry, RT_NULL, 1024, 3, 3);
-	if (flow_con != RT_NULL)
-	{
-		rt_thread_startup(flow_con);
-	}
-	
-	
-	/* 创建流量标定任务 */
-//	flow_calib = rt_thread_create("calib_thread_entry", calib_thread_entry, RT_NULL, 1024, 2, 2);
-//	if (flow_calib != RT_NULL)
-//	{
-//		rt_thread_startup(flow_calib);
-//	}
-}
 
 
 int main(void)
 {
-	start_thread = rt_thread_create("start_task_entry", start_task_entry, RT_NULL, 2048, 3, 3);
-	if (start_thread != RT_NULL)
+	rt_thread_t thread_start = rt_thread_create("start_thread_entry", start_thread_entry, RT_NULL, 2048, 10, 10);
+	if (thread_start != RT_NULL)
 	{
-		rt_thread_startup(start_thread);
+		rt_thread_startup(thread_start);
 	}
 	
-	
-	
-	while (1)
-	{
-		rt_thread_mdelay(1000);
-	}
-	return RT_EOK;
+		
+  return 0;
 }
+
+
+static void start_thread_entry(void *parameter)
+{
+    rt_thread_t flow;
+    rt_thread_t calib;
+
+    /* 流量控制线程 */
+    flow = rt_thread_create("flow_controller_thread", flow_controller_thread, RT_NULL, 1024, 15, 10);
+
+    if (flow != RT_NULL)
+    {
+        rt_thread_startup(flow);
+    }
+
+    /* 传感器标定线程 */
+    calib = rt_thread_create("calib_thread_entry", calib_thread_entry, RT_NULL, 1024, 16, 10);
+
+    if (calib != RT_NULL)
+    {
+        rt_thread_startup(calib);
+    }
+
+
+}
+
 
 
 

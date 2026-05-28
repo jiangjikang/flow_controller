@@ -6,9 +6,9 @@
 
 
 #include "stm32h7xx_hal.h"
-#include <rtthread.h>
-#include <rthw.h>
 
+#include <rthw.h>
+#include <rtthread.h>
 
 
 
@@ -21,21 +21,7 @@ struct median_filter
     uint8_t full_flag;
 };
 
-struct sliding_average_filter
-{
-    int16_t w_size;
-    int16_t head;
-    float sum;
-    float *cache;
-};
 
-//rt_thread_t flow_control = RT_NULL;				// 创建流量控制句柄
-
-void sliding_average_filter_init(struct sliding_average_filter *filter, int16_t w_size);
-float sliding_average_filter(struct sliding_average_filter *filter, float k);
-
-
-void flowControl_thread_entry(void *parameter);
 
 
 void median_filter_init(struct median_filter *filter, uint16_t len);

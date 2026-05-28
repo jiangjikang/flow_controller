@@ -1,15 +1,11 @@
 #include "ADS8688.h"
-#include "my_dac.h"
 
-struct rt_spi_device spi_dev_ads8688; 		/* SPI设备ads8688对象 */
-struct stm32_hw_spi_cs  spi_cs;  			/* SPI设备CS片选引脚 */
+
+
+static struct rt_spi_device spi_dev_ads8688; 		/* SPI设备ads8688对象 */
+static struct stm32_hw_spi_cs  spi_cs;  			/* SPI设备CS片选引脚 */
 
 struct median_filter adc_median_filter; 
-rt_uint16_t str[110];
-
-float g_set_flow_val = 0;
-float g_k_factor = 1.0f;
-
 
 
 void ads8688_write_command(uint16_t comm)
@@ -69,7 +65,7 @@ rt_err_t ads8688_get_man_ch_data(uint16_t ch, uint16_t *data)
 
 
 
-int rt_hw_ads8688_config(void)
+static int rt_hw_ads8688_config(void)
 {
     rt_err_t res;
 
@@ -183,7 +179,8 @@ static int atoi(const char *nptr)
 }
 
 
-
+float g_set_flow_val = 0;
+float g_k_factor = 1.0f;
 
 void setvar(int argc, char **argv)
 {
@@ -193,7 +190,7 @@ void setvar(int argc, char **argv)
     }
     int32_t value = atoi(argv[2]);
     if (!rt_strcmp(argv[1], "flow")) 
-		{
+	{
         g_set_flow_val =  value;
     }
 	else if (!rt_strcmp(argv[1], "kfactor")) 
@@ -203,7 +200,7 @@ void setvar(int argc, char **argv)
 	else 
 	{ 
         rt_kprintf("Please input'setenv <name> <value>'\n");
-  }
+    }
 }
 MSH_CMD_EXPORT(setvar, set var);
 
@@ -216,5 +213,115 @@ void stop(void)
 }
 MSH_CMD_EXPORT(stop,stop);
 
-extern rt_device_t serial_dev[];
-uint16_t len_test = 0;
+
+
+
+
+void flow_controller_thread(void *parameter)
+{
+	uint16_t adc_data_tmp = 0;
+	uint16_t adc_data = 0;
+
+	uint8_t dis_buf[40];
+	float volt_mV;
+	float current_mA;
+	float flow_rate = 0;
+	
+	rt_err_t err;
+
+	float vlot_set_value_mV = 0;	
+	static uint16_t count = 0;
+	
+	int32_t adc_value_unfiltered = 0;
+	
+	DAC1_Init();		// 初始化DAC1
+	 /* set LED0 pin mode to output */	
+    rt_pin_mode(LED0_PIN, PIN_MODE_OUTPUT);	
+	rt_hw_ads8688_config();
+	median_filter_init(&adc_median_filter, 10);
+	
+    while (1)
+    {
+			err = ads8688_get_man_ch_data(MAN_CH_0,&adc_data_tmp);
+			if(err == RT_EOK)
+			{
+				adc_data = median_filter(&adc_median_filter, adc_data_tmp);
+			}
+			else
+			{
+				rt_kprintf("adc read error!\r\n");
+			}
+			
+			volt_mV = ((float)adc_data-32767)*20480.0/65536;
+			current_mA = volt_mV / 499;
+			
+			flow_rate = convert_current_to_flow(current_mA);
+			
+			flow_rate *= g_k_factor;
+			
+			if(flow_rate < 0)
+			{
+				flow_rate = 0;
+			}
+		
+			if(count ++ >= 20)
+			{
+				count = 0;
+				sprintf ((char *)dis_buf,"CH0: %10.4lfmV  D: %04X", volt_mV , (uint16_t)adc_data);
+				rt_kprintf("%s\r\n", (char *)dis_buf);
+				rt_kprintf("flow = %d\r\n", (int32_t)flow_rate);
+			}
+			
+			if(flow_rate < g_set_flow_val - 500)
+			{
+				vlot_set_value_mV += 50;
+			}
+			else if(flow_rate < g_set_flow_val-100)
+			{
+				vlot_set_value_mV += 5;
+			}
+			else if(flow_rate < g_set_flow_val-20)
+			{
+				vlot_set_value_mV += 2;
+			}
+			else if(flow_rate < g_set_flow_val - 2)
+			{
+				vlot_set_value_mV += 0.1;
+			}
+			
+			else if(flow_rate > g_set_flow_val + 500)
+			{	
+				vlot_set_value_mV -= 50;
+			}
+			else if(flow_rate > g_set_flow_val + 100)
+			{	
+				vlot_set_value_mV -= 5;
+			}
+			else if(flow_rate > g_set_flow_val + 20)
+			{	
+				vlot_set_value_mV -= 2;
+			}
+			else if(flow_rate > g_set_flow_val + 2)
+			{	
+				vlot_set_value_mV -= 0.1;
+			}
+			else if(g_set_flow_val == 0)
+			{
+				vlot_set_value_mV = 0;
+			}
+				
+			
+			if(vlot_set_value_mV < 0)
+			{
+				vlot_set_value_mV = 0;
+			}
+			else if(vlot_set_value_mV > 7000)
+			{
+				vlot_set_value_mV = 7000;
+			}
+			
+			set_dac_output_voltage(vlot_set_value_mV);
+
+			rt_thread_mdelay(100);
+    }
+}

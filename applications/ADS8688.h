@@ -3,10 +3,14 @@
 #define __ADS8688_H
 
 
-#include "stm32h7xx_hal.h"
+#include <rtthread.h>
 #include <rtdevice.h>
+#include <board.h>
 #include <drv_spi.h>
+#include "my_dac.h"
 #include "filter.h"
+
+
 
 //-----------------------------------------------------------------
 // 宏定义
@@ -59,10 +63,7 @@
 #define VREF_U_25							0x05	// 通道输入范围2.5*VREF
 #define VREF_U_125							0x06	// 通道输入范围1.25*VREF
 
-extern struct median_filter adc_median_filter; 
 
-extern float g_set_flow_val;
-extern float g_k_factor;
 
 /* defined the LED0 pin: PB1 */
 #define LED0_PIN    GET_PIN(A, 0)
@@ -73,14 +74,12 @@ extern float g_k_factor;
 
 
 
-
-
 void ads8688_write_command(uint16_t comm);
 void ads8688_write_program(uint8_t addr,uint8_t data);
 rt_err_t ads8688_get_man_ch_data(uint16_t ch, uint16_t *data);
-int rt_hw_ads8688_config(void);
 float convert_current_to_flow(float current);
-
+void set_dac_output_voltage(float vlot_set_value_mV);
+void flow_controller_thread(void *parameter);
 
 
 #endif

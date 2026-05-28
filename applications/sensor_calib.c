@@ -1,9 +1,6 @@
 #include "sensor_calib.h"
 
 
-rt_uint16_t temp_flow;
-
-
 /**
  * @brief  ºÏ≤‚LED «∑Ò∫∏Ω”≤ª¡º
  *
