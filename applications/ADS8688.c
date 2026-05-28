@@ -193,7 +193,7 @@ void setvar(int argc, char **argv)
     }
     int32_t value = atoi(argv[2]);
     if (!rt_strcmp(argv[1], "flow")) 
-	{
+		{
         g_set_flow_val =  value;
     }
 	else if (!rt_strcmp(argv[1], "kfactor")) 

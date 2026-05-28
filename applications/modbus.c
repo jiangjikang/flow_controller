@@ -86,39 +86,6 @@ cmd_fail:
     return  res;
 }
 
-/**
- * @brief  读取指定从站单个保持寄存器（Modbus 0x03）
- *
- * @param[in]  serial_num  串口号
- * @param[in]  slave_addr  从站地址
- * @param[in]  reg_addr    寄存器地址
- * @param[out] value       读取到的寄存器值
- * @param[in]  timeout     接收超时时间，单位 ms
- *
- * @return rt_err_t
- * @retval RT_EOK    成功
- * @retval RT_ERROR  失败
- */
-rt_err_t mb_read_one_holding_register(enum serial serial_num, uint8_t slave_addr, uint16_t reg_addr, uint16_t *value, uint32_t timeout)
-{
-    rt_err_t res;
-
-    if ((value == RT_NULL) || (reg_addr >= M_REG_HOLDING_NREGS))
-    {
-        return RT_ERROR;
-    }
-
-    res = mb_read_holding_register(serial_num, slave_addr, reg_addr, 1, timeout);
-    if (res != RT_EOK)
-    {
-        return res;
-    }
-
-    *value = user_reg_hold_buf[reg_addr];
-
-    return RT_EOK;
-}
-
 
 /**
  * @brief  并行读取多个从站保持寄存器（Modbus 0x03）
@@ -326,32 +293,19 @@ rt_err_t mb_write_holding_register(enum serial serial_num,uint8_t slave_addr, ui
     crc_code = crc_16(cmd, sizeof(cmd) - 2);
     cmd[6] = (uint8_t)(crc_code & 0x00FF);
     cmd[7] = (uint8_t)(crc_code >> 8);
-    rt_kprintf("cmd: %02x %02x %02x %02x %02x %02x %02x %02x\r\n",
-           cmd[0], cmd[1], cmd[2], cmd[3],
-           cmd[4], cmd[5], cmd[6], cmd[7]);
-    log_develop(MB_INFO,"\r\n");
     clear_rxbuffer(serial_num);
     serial_send(serial_num,cmd, sizeof(cmd));
 
     uint8_t rx_buffer[8];
     rt_size_t rx_length;
-
-    //  rs485_rx_mode();
     uint16_t total = 0;
 
 	while(total < sizeof(rx_buffer))
 	{
-			rx_length = serial_recv(
-											serial_num,
-											&rx_buffer[total],
-											sizeof(rx_buffer) - total,
-											timeout);
+			rx_length = serial_recv(serial_num, &rx_buffer[total], sizeof(rx_buffer) - total, timeout);
 
 			if(rx_length == 0)
-			{
 					break;
-			}
-
 			total += rx_length;
 	}
 
@@ -469,35 +423,25 @@ cmd_fail:
 
 
 
-//rt_err_t mb_reread_holding_register(enum serial_num serial_nu,uint8_t slave_addr, uint16_t reg_addr, uint16_t reg_num, uint32_t timeout)
-//{
-//		rt_err_t result = RT_EOK;
-//    uint16_t fail_cnt = 0;
-//    do
-//    {
-//        result = mb_parallel_read_holding_register(serial_nu, slave_addr,  reg_addr, reg_num, timeout);
-//        if(result != RT_EOK)
-//        {
-//			rt_thread_mdelay(50);
-//            fail_cnt ++;
-//        }
-//        else
-//        {
-//            break;
-//        }
-//    } while(fail_cnt < 1);
+static rt_err_t mb_wait_ack(enum serial serial_num, uint8_t *rx_buffer, uint16_t len, uint32_t timeout)
+{
+    rt_size_t rx_length;
+    uint16_t total = 0;
 
-//    if(fail_cnt >= 1)
-//    {
-//        result = RT_ERROR;
-//        goto cmd_fail;
-//    }
+    while(total < len)
+    {
+        rx_length = serial_recv(serial_num, &rx_buffer[total], len - total, timeout);
 
-//    return RT_EOK;
+        if(rx_length == 0)
+        {
+            return RT_ERROR;
+        }
 
-//cmd_fail:
-//    return result;
-//}
+        total += rx_length;
+    }
+
+    return RT_EOK;
+}
 
 
 

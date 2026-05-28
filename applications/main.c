@@ -25,7 +25,6 @@ rt_thread_t flow_calib = RT_NULL;
 
 void start_task_entry(void *parameter)
 {
-	
 	/* 创建流量控制任务 */
 	flow_con = rt_thread_create("flow_control", flowControl_thread_entry, RT_NULL, 1024, 3, 3);
 	if (flow_con != RT_NULL)
@@ -33,12 +32,13 @@ void start_task_entry(void *parameter)
 		rt_thread_startup(flow_con);
 	}
 	
+	
 	/* 创建流量标定任务 */
-	flow_calib = rt_thread_create("calib_thread_entry", calib_thread_entry, RT_NULL, 1024, 2, 2);
-	if (flow_calib != RT_NULL)
-	{
-		rt_thread_startup(flow_calib);
-	}
+//	flow_calib = rt_thread_create("calib_thread_entry", calib_thread_entry, RT_NULL, 1024, 2, 2);
+//	if (flow_calib != RT_NULL)
+//	{
+//		rt_thread_startup(flow_calib);
+//	}
 }
 
 

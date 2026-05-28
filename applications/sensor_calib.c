@@ -1,7 +1,7 @@
 #include "sensor_calib.h"
 
 
-
+rt_uint16_t temp_flow;
 
 
 /**
@@ -16,6 +16,8 @@ void led_check(void)
 	mb_write_holding_register(SERIAL_6, 1, 34, led_reg, 0xF);	// 向该函数以1s为周期发送1和2
 	led_reg = (led_reg == 1) ? 2 : 1;	// 改变led_reg值
 }
+
+
 
 
 
@@ -35,6 +37,7 @@ void calib_thread_entry(void *parameter)
     {
 			led_check();	// 单一功能函数用于检测LED是否焊接不良
 			
+		
       rt_thread_mdelay(1000);	// 周期运行任务，延时用于让线程进入阻塞态并释放CPU
     }
 }

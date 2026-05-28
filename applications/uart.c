@@ -7,9 +7,13 @@ uint16_t uart7_rx_count = 0;
 
 //char *serial_dev_name[SERIAL_NUM_MAX] = {"uart3", "uart4", "uart6", "uart7"};
 char *serial_dev_name[SERIAL_NUM_MAX] = {"uart6"};
+static rt_device_t uart1_dev = RT_NULL;
+
 rt_device_t serial_dev[SERIAL_NUM_MAX];
 static struct rt_event uart_rcv_event;
 static rt_timer_t timer[SERIAL_NUM_MAX] = {RT_NULL};
+
+static struct rt_semaphore uart1_rx_sem;
 
 
 static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
@@ -18,10 +22,23 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
 		if(dev == serial_dev[0])
 		{
 //				rt_timer_start(timer[0]);
-//				rt_event_send(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(0));
+				
 			rt_timer_stop(timer[0]);
-        rt_timer_start(timer[0]);
+      rt_timer_start(timer[0]);
+			rt_event_send(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(0));
 		}
+		
+		if (dev)
+		{
+			
+		}
+
+    return RT_EOK;
+}
+
+static rt_err_t uart1_rx_callback(rt_device_t dev, rt_size_t size)
+{
+    rt_sem_release(&uart1_rx_sem);
 
     return RT_EOK;
 }
@@ -38,21 +55,6 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
  *
  * @return   成功返回数据长度
  */
-//rt_size_t serial_recv(enum serial serial_num, void *buf, rt_size_t size, uint32_t timeout)
-//{
-//	rt_err_t result;
-//	rt_size_t rx_length;
-//	
-//	result = rt_event_recv(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(serial_num), RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR, timeout, RT_NULL);
-//	
-//	if (result == RT_EOK)
-//	{
-//		rx_length = rt_device_read(serial_dev[serial_num], 0, buf, size);
-//		return rx_length;
-//	}
-//		return 0;
-//}
-
 rt_size_t serial_recv(enum serial serial_num, void *buf, rt_size_t size, uint32_t timeout)
 {
     rt_err_t result;
@@ -201,6 +203,10 @@ static int uart_dma_init(void)
     /* 设置接收回调函数 */
     rt_device_set_rx_indicate(serial_dev[0], uart_input);
 		
+
+		uart1_dev = rt_device_find("uart1");
+		rt_device_open(uart1_dev, RT_DEVICE_FLAG_INT_RX);
+		rt_device_set_rx_indicate(uart1_dev, uart1_rx_callback);
 
 	
 	
