@@ -7,7 +7,7 @@
 #include <rtthread.h>
 #include "modbus.h"
 
-#define MODBUS_FRAME_TIMEOUT rt_tick_from_millisecond(50)
+#define MODBUS_FRAME_TIMEOUT rt_tick_from_millisecond(5)
 
 enum serial
 {

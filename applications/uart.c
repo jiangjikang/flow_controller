@@ -21,25 +21,9 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
 				
 		if(dev == serial_dev[0])
 		{
-//				rt_timer_start(timer[0]);
-				
 			rt_timer_stop(timer[0]);
       rt_timer_start(timer[0]);
-			rt_event_send(&uart_rcv_event, RCV_EVENT_FLAG_SERIAL(0));
 		}
-		
-		if (dev)
-		{
-			
-		}
-
-    return RT_EOK;
-}
-
-static rt_err_t uart1_rx_callback(rt_device_t dev, rt_size_t size)
-{
-    rt_sem_release(&uart1_rx_sem);
-
     return RT_EOK;
 }
 
@@ -68,16 +52,20 @@ rt_size_t serial_recv(enum serial serial_num, void *buf, rt_size_t size, uint32_
         return 0;
     }
 
-    while(total < size)
+    while(1)
     {
         len = rt_device_read(serial_dev[serial_num], 0, (uint8_t *)buf + total, size - total);
 
         if(len == 0)
         {
-            break;
+						break;
         }
 
         total += len;
+				if(total >= size)
+        {
+            break;
+        }
     }
 
     return total;
@@ -202,11 +190,6 @@ static int uart_dma_init(void)
     rt_device_open(serial_dev[0], RT_DEVICE_FLAG_INT_RX | RT_DEVICE_OFLAG_RDWR);
     /* 设置接收回调函数 */
     rt_device_set_rx_indicate(serial_dev[0], uart_input);
-		
-
-		uart1_dev = rt_device_find("uart1");
-		rt_device_open(uart1_dev, RT_DEVICE_FLAG_INT_RX);
-		rt_device_set_rx_indicate(uart1_dev, uart1_rx_callback);
 
 	
 	
