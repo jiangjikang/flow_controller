@@ -51,6 +51,7 @@ rt_err_t mb_read_holding_register(enum serial serial_num,uint8_t slave_addr, uin
 		
 		
     rx_length = serial_recv(serial_num, rx_buffer, sizeof(rx_buffer),timeout);
+		rt_kprintf("读取的长度为：%d", rx_length);
     if (rx_length < 2)
     {
 			log_develop(MB_INFO,"length error\n");
@@ -420,82 +421,6 @@ rt_err_t mb_write_8_holding_register(enum serial serial_num,uint8_t slave_addr, 
 cmd_fail:
     return res;
 }
-
-
-
-static rt_err_t mb_wait_ack(enum serial serial_num, uint8_t *rx_buffer, uint16_t len, uint32_t timeout)
-{
-    rt_size_t rx_length;
-    uint16_t total = 0;
-
-    while(total < len)
-    {
-        rx_length = serial_recv(serial_num, &rx_buffer[total], len - total, timeout);
-
-        if(rx_length == 0)
-        {
-            return RT_ERROR;
-        }
-
-        total += rx_length;
-    }
-
-    return RT_EOK;
-}
-
-
-
-
-
-/**
- * @brief  重试写入单个保持寄存器
- *
- * 调用 mb_write_holding_register() 写入寄存器，
- * 若失败则延时后重试，达到最大次数仍失败则返回错误。
- *
- * @param[in] serial_num  串口号
- * @param[in] slave_addr  从站地址
- * @param[in] reg_addr    寄存器地址
- * @param[in] data        写入数据
- * @param[in] timeout     单次通信超时时间，单位 ms
- *
- * @return rt_err_t
- * @retval RT_EOK    写入成功
- * @retval RT_ERROR  重试后仍失败
- *
- * @note
- * 当前最多重试1次，失败后延时50ms。
- */
-rt_err_t mb_rewrite_holding_register(enum serial serial_num,uint8_t slave_addr, uint16_t reg_addr, uint16_t data, uint32_t timeout)
-{
-    rt_err_t result = RT_EOK;
-    uint16_t fail_cnt = 0;
-    do
-    {
-        result = mb_write_holding_register(serial_num,slave_addr,reg_addr,data,timeout);
-        if(result != RT_EOK)
-        {
-            rt_thread_mdelay(50);
-            fail_cnt ++;
-        }
-        else
-        {
-            break;
-        }
-    } while(fail_cnt < 1);
-
-    if(fail_cnt >= 1)
-    {
-        result = RT_ERROR;
-        goto cmd_fail;
-    }
-
-    return RT_EOK;
-
-cmd_fail:
-    return result;
-}
-
 
 
 

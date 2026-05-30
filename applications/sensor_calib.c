@@ -15,6 +15,23 @@ void led_check(void)
 }
 
 
+/**
+ * @brief  检测Signal是否不良
+ *
+ *	通过读取从机40号寄存器数据，判断该寄存器是否大于30表示信号不良。
+ *
+ *
+ *
+ * 
+ * @retval RT_ERROR 
+ * @retval RT_EOK
+ */
+rt_err_t check_signal(enum serial serial_num)
+{
+	mb_read_holding_register(serial_num, 1, 40, 1, 0xF);
+}
+
+
 
 
 
@@ -33,7 +50,7 @@ void calib_thread_entry(void *parameter)
     while (1)
     {
 			led_check();	// 单一功能函数用于检测LED是否焊接不良
-			
+			check_signal(0);
 		
       rt_thread_mdelay(1000);	// 周期运行任务，延时用于让线程进入阻塞态并释放CPU
     }
