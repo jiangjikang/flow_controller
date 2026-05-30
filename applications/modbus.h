@@ -9,6 +9,7 @@
 #define M_REG_HOLDING_NREGS	100
 #define RX_BUF_LEN	(M_REG_HOLDING_NREGS*2 + 5)
 #define MB_MASTER_TOTAL_SLAVE_NUM  ( 1 )
+extern uint16_t user_reg_hold_buf[M_REG_HOLDING_NREGS];
 
 
 rt_err_t mb_read_holding_register(enum serial serial_num,uint8_t slave_addr, uint16_t reg_addr, uint16_t reg_num, uint32_t timeout);

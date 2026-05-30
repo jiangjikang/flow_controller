@@ -10,7 +10,7 @@
 void led_check(void)
 {
 	static int led_reg = 1; // 初始化LED寄存器数值
-	mb_write_holding_register(SERIAL_6, 1, 34, led_reg, 0xF);	// 向该函数以1s为周期发送1和2
+	mb_write_holding_register(SERIAL_6, 1, 34, led_reg, 100);	// 向该函数以1s为周期发送1和2
 	led_reg = (led_reg == 1) ? 2 : 1;	// 改变led_reg值
 }
 
@@ -28,7 +28,20 @@ void led_check(void)
  */
 rt_err_t check_signal(enum serial serial_num)
 {
-	mb_read_holding_register(serial_num, 1, 40, 1, 0xF);
+    rt_err_t ret;
+
+    ret = mb_read_holding_register(serial_num, 1, 40, 1, 100);
+    if (ret != RT_EOK)
+    {
+        return ret;
+    }
+
+    if (user_reg_hold_buf[40] > 30)
+    {
+			rt_kprintf("warning: signal bad: %d, serial=%d\r\n", user_reg_hold_buf[40], serial_num);
+    }
+
+    return RT_EOK;
 }
 
 

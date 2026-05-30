@@ -51,7 +51,6 @@ rt_err_t mb_read_holding_register(enum serial serial_num,uint8_t slave_addr, uin
 		
 		
     rx_length = serial_recv(serial_num, rx_buffer, sizeof(rx_buffer),timeout);
-		rt_kprintf("读取的长度为：%d", rx_length);
     if (rx_length < 2)
     {
 			log_develop(MB_INFO,"length error\n");
@@ -76,8 +75,6 @@ rt_err_t mb_read_holding_register(enum serial serial_num,uint8_t slave_addr, uin
     }
     for (uint8_t i = 0, j = 0; j < reg_num; i += 2, j += 1) {
       user_reg_hold_buf[reg_addr + j] = ((uint16_t)rx_buffer[i + 3] << 8) | (uint16_t)rx_buffer[i + 4];
-			log_develop(MB_INFO,"ID:%d ",serial_num);
-      log_develop(MB_INFO, "%04x ", user_reg_hold_buf[j]);
     }
     log_develop(MB_INFO,"\n");
 
